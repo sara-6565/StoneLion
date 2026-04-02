@@ -1,4 +1,4 @@
-# IRON FIST — Martial Arts Training Platform
+# Stonelion Kung Fu — Martial Arts Training Platform
 
 A small Deno backend plus single-page web UI for training tracking and ESP32 sensor input.
 
@@ -38,6 +38,26 @@ A small Deno backend plus single-page web UI for training tracking and ESP32 sen
 
 3. Open the app in your browser:
    - `http://localhost:8080`
+
+### VS Code quick start
+
+Use the built-in task to launch the server faster:
+
+1. Open Command Palette: `Ctrl+Shift+P`
+2. Run: `Tasks: Run Build Task`
+3. Choose: `Start Stonelion Kung Fu server`
+
+This launches Deno and starts the app at `http://localhost:8080`.
+
+### One-click launch
+
+A VS Code launch configuration is also available:
+
+1. Open the Run view: `Ctrl+Shift+D`
+2. Select `Launch Stonelion Kung Fu server`
+3. Click the green Start button
+
+If `8080` is already in use, stop the old server first by closing the terminal or task that is running the previous Deno process.
 
 4. To test from another device on your Wi-Fi network:
    - find your local PC IP with `ipconfig`

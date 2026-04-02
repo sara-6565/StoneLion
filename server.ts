@@ -533,5 +533,5 @@ async function handler(req: Request): Promise<Response> {
 
 // ── Boot ───────────────────────────────────────────────────────────
 const PORT = 8080;
-console.log(`\n🥊 IRON FIST server → http://localhost:${PORT}\n`);
+console.log(`\n🥊 Stonelion Kung Fu server → http://localhost:${PORT}\n`);
 Deno.serve({ port: PORT }, handler);
