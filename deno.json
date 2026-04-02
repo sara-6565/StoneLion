@@ -5,5 +5,11 @@
   },
   "fmt": {
     "lineWidth": 80
+  },
+  "importMap": "import_map.json",
+  "deploy": {
+    "org": "sara-6565",
+    "app": "stonelion"
   }
 }
+

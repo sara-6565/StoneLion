@@ -26,9 +26,8 @@ jobs:
       - name: Deploy to Deno Deploy
         if: env.DENO_DEPLOY_PROJECT && env.DENO_DEPLOY_TOKEN
         run: |
-          deno deploy --project ${{ secrets.DENO_DEPLOY_PROJECT }} \
-            --token ${{ secrets.DENO_DEPLOY_TOKEN }} \
-            --import-map=import_map.json .
+          deno deploy --app ${{ secrets.DENO_DEPLOY_PROJECT }} \
+            --token ${{ secrets.DENO_DEPLOY_TOKEN }} .
         env:
           DENO_DEPLOY_PROJECT: ${{ secrets.DENO_DEPLOY_PROJECT }}
           DENO_DEPLOY_TOKEN: ${{ secrets.DENO_DEPLOY_TOKEN }}
