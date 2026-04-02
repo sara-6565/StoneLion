@@ -534,4 +534,4 @@ async function handler(req: Request): Promise<Response> {
 // ── Boot ───────────────────────────────────────────────────────────
 const PORT = 8080;
 console.log(`\n🥊 Stonelion Kung Fu server → http://localhost:${PORT}\n`);
-Deno.serve({ port: PORT }, handler);
+Deno.serve({ port: 8080, hostname: "0.0.0.0" }, handler);
