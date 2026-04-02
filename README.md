@@ -139,9 +139,21 @@ If you later want a more robust production database, you can migrate to:
 
 ### Deploy from your machine
 
-```powershell
-deno deploy --project $DENO_DEPLOY_PROJECT --token $DENO_DEPLOY_TOKEN --import-map=import_map.json .
-```
+If you want to upload the latest code directly from your PC, use the Deno Deploy CLI.
+
+1. Install or update Deno:
+   ```powershell
+   deno upgrade
+   ```
+
+2. Run deploy from the project root:
+   ```powershell
+   deno deploy --project <YOUR_PROJECT_NAME> --token <YOUR_DENO_DEPLOY_TOKEN> --import-map=import_map.json .
+   ```
+
+This command uploads your current project files as the latest version to Deno Deploy.
+
+> If you do not want to use GitHub secrets, this is the direct method.
 
 ### Using GitHub Actions
 
@@ -151,9 +163,11 @@ It lints the code and deploys on every push to `main` if the secrets are configu
 ## Quick commands
 
 ```powershell
+deno upgrade
 deno run --allow-net --allow-read --allow-write --unstable-kv --import-map=import_map.json server.ts
 deno cache server.ts
 deno lint --import-map=import_map.json
+deno deploy --project <YOUR_PROJECT_NAME> --token <YOUR_DENO_DEPLOY_TOKEN> --import-map=import_map.json .
 ```
 
 ## Notes
