@@ -1,0 +1,1855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IRON FIST — Martial Arts Training Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ── VARIABLES ─────────────────────────────────────────────────── */
+:root {
+  --bg:        #0a0a0a;
+  --bg2:       #111111;
+  --bg3:       #1a1a1a;
+  --surface:   #1e1e1e;
+  --surface2:  #252525;
+  --border:    rgba(255,255,255,0.07);
+  --border2:   rgba(255,255,255,0.12);
+  --text:      #f0f0f0;
+  --muted:     #888;
+  --muted2:    #555;
+  --red:       #d42b2b;
+  --red2:      #e83d3d;
+  --red3:      #ff5555;
+  --red-glow:  rgba(212,43,43,0.18);
+  --up:        #4fa3e8;
+  --down:      #e85d3d;
+  --left:      #9b6bef;
+  --right:     #3dc47e;
+  --center:    #f0a040;
+  --gold:      #c9a227;
+  font-family: 'Barlow', sans-serif;
+}
+
+[data-theme="light"] {
+  --bg:       #f4f1ec;
+  --bg2:      #ede9e2;
+  --bg3:      #e5e0d8;
+  --surface:  #ffffff;
+  --surface2: #f7f4ef;
+  --border:   rgba(0,0,0,0.07);
+  --border2:  rgba(0,0,0,0.14);
+  --text:     #1a1a1a;
+  --muted:    #666;
+  --muted2:   #aaa;
+  --red-glow: rgba(212,43,43,0.10);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── SCROLLBAR ─────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--muted2); border-radius: 2px; }
+
+/* ── TYPOGRAPHY ────────────────────────────────────────────────── */
+h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.04em; }
+.condensed { font-family: 'Barlow Condensed', sans-serif; }
+
+/* ── VIEWS ─────────────────────────────────────────────────────── */
+.view { display: none; min-height: 100vh; }
+.view.active { display: block; }
+
+/* ── BUTTONS ───────────────────────────────────────────────────── */
+.btn {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  padding: 12px 28px;
+  transition: all 0.18s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-primary {
+  background: var(--red);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(212,43,43,0.3);
+}
+.btn-primary:hover { background: var(--red2); transform: translateY(-1px); box-shadow: 0 4px 24px rgba(212,43,43,0.4); }
+.btn-ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border2);
+}
+.btn-ghost:hover { border-color: var(--red); color: var(--red); }
+.btn-sm { padding: 8px 16px; font-size: 13px; }
+.btn-block { width: 100%; justify-content: center; }
+
+/* ── INPUTS ────────────────────────────────────────────────────── */
+.input-group { margin-bottom: 16px; }
+.input-group label {
+  display: block;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.input-group input, .input-group select {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: 'Barlow', sans-serif;
+  font-size: 15px;
+  padding: 12px 14px;
+  transition: border-color 0.15s;
+  outline: none;
+}
+.input-group input:focus, .input-group select:focus { border-color: var(--red); }
+.input-group input::placeholder { color: var(--muted2); }
+
+/* ── AUTH PAGES ────────────────────────────────────────────────── */
+.auth-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+}
+@media (max-width: 768px) { .auth-layout { grid-template-columns: 1fr; } }
+
+.auth-left {
+  background: var(--bg2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 40px;
+  position: relative;
+  overflow: hidden;
+}
+.auth-left::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 30% 60%, rgba(212,43,43,0.15) 0%, transparent 60%);
+  pointer-events: none;
+}
+.auth-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+  z-index: 1;
+}
+.auth-logo {
+  width: 110px;
+  height: 110px;
+  background: var(--bg3);
+  border: 2px solid var(--border2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.auth-logo::after {
+  content: '';
+}
+.auth-logo img,
+.nav-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.auth-tagline {
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 280px;
+}
+.auth-quote {
+  margin-top: 40px;
+  text-align: center;
+  max-width: 300px;
+  position: relative;
+  z-index: 1;
+}
+.auth-quote p {
+  font-size: 15px;
+  font-style: italic;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.auth-quote .q-author {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--red);
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.auth-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 40px;
+  background: var(--bg);
+}
+.auth-form-box {
+  width: 100%;
+  max-width: 400px;
+}
+.auth-form-title {
+  font-size: 42px;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.auth-form-sub {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 32px;
+}
+.auth-link {
+  color: var(--red);
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: 600;
+}
+.auth-link:hover { text-decoration: underline; }
+.auth-footer {
+  margin-top: 20px;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+}
+.error-msg {
+  background: rgba(212,43,43,0.1);
+  border: 1px solid rgba(212,43,43,0.3);
+  border-radius: 4px;
+  color: var(--red3);
+  font-size: 13px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  display: none;
+}
+.success-msg {
+  background: rgba(61,196,126,0.1);
+  border: 1px solid rgba(61,196,126,0.3);
+  border-radius: 4px;
+  color: var(--right);
+  font-size: 13px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  display: none;
+}
+
+/* ── APP SHELL ─────────────────────────────────────────────────── */
+.app-shell { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* ── NAVBAR ────────────────────────────────────────────────────── */
+.navbar {
+  height: 60px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.nav-logo {
+  width: 36px; height: 36px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: var(--muted2);
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.1em;
+}
+.nav-title { font-size: 22px; color: var(--text); }
+.nav-title span { color: var(--red); }
+
+.nav-links {
+  display: flex;
+  gap: 4px;
+  margin-left: 32px;
+}
+.nav-link {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: none;
+  background: none;
+}
+.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface); }
+.nav-link.active { color: var(--red); }
+
+.nav-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── THEME / LANG TOGGLES ──────────────────────────────────────── */
+.icon-btn {
+  width: 34px; height: 34px;
+  border-radius: 6px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  transition: all 0.15s;
+}
+.icon-btn:hover { color: var(--text); border-color: var(--red); }
+
+.lang-btn {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.lang-btn:hover { color: var(--text); border-color: var(--red); }
+
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 4px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.user-chip:hover { border-color: var(--red); }
+.user-avatar {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+}
+.user-name { font-size: 13px; font-weight: 600; }
+
+/* ── PAGE CONTENT ──────────────────────────────────────────────── */
+.page { padding: 28px 24px; max-width: 1300px; margin: 0 auto; }
+.page-title { font-size: 40px; margin-bottom: 4px; }
+.page-sub { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+
+/* ── HOMEPAGE ──────────────────────────────────────────────────── */
+.home-hero {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 40px 36px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.home-hero::before {
+  content: '';
+  position: absolute;
+  right: -60px; top: -60px;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(212,43,43,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-welcome { font-size: 14px; color: var(--muted); margin-bottom: 4px; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; }
+.hero-name { font-size: 52px; color: var(--text); line-height: 1; }
+.hero-name span { color: var(--red); }
+.hero-tagline { font-size: 14px; color: var(--muted); margin-top: 10px; max-width: 400px; line-height: 1.6; }
+.hero-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+.hero-right { text-align: right; flex-shrink: 0; }
+.hero-stat-big { font-size: 64px; color: var(--red); line-height: 1; }
+.hero-stat-label { font-size: 13px; color: var(--muted); font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.08em; text-transform: uppercase; }
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+@media (max-width: 900px) { .stats-row { grid-template-columns: 1fr 1fr; } }
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--red);
+  transform: scaleX(0);
+  transition: transform 0.3s;
+  transform-origin: left;
+}
+.stat-card:hover::after { transform: scaleX(1); }
+.stat-label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; font-family: 'Barlow Condensed', sans-serif; }
+.stat-value { font-size: 32px; font-weight: 700; line-height: 1; }
+.stat-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+/* ── SESSION TIMER ─────────────────────────────────────────────── */
+.session-banner {
+  background: linear-gradient(135deg, #1a0000 0%, #2a0808 100%);
+  border: 1px solid rgba(212,43,43,0.3);
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.session-timer {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  color: var(--red3);
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+.session-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; font-family: 'Barlow Condensed', sans-serif; }
+.session-live-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--red3);
+  display: inline-block;
+  margin-right: 6px;
+  animation: blink 1s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+/* ── LIVE DASHBOARD ────────────────────────────────────────────── */
+.live-grid {
+  display: grid;
+  grid-template-columns: 300px 1fr 280px;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+@media (max-width: 1100px) { .live-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 700px)  { .live-grid { grid-template-columns: 1fr; } }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+}
+.card-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+/* ── PUNCH MAP ─────────────────────────────────────────────────── */
+.punch-map {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  gap: 8px;
+  aspect-ratio: 1;
+  max-width: 240px;
+  margin: 0 auto;
+}
+.zone {
+  border-radius: 8px;
+  border: 1.5px solid var(--border2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  transition: all 0.2s;
+}
+.zone.active { color: #fff; }
+@keyframes zoneFlash { 0%{transform:scale(1)} 30%{transform:scale(1.12)} 100%{transform:scale(1)} }
+.zone-flash { animation: zoneFlash 0.3s ease-out; }
+#zone-up     { grid-column:2; grid-row:1; color:var(--up); }
+#zone-down   { grid-column:2; grid-row:3; color:var(--down); }
+#zone-left   { grid-column:1; grid-row:2; color:var(--left); }
+#zone-right  { grid-column:3; grid-row:2; color:var(--right); }
+#zone-center { grid-column:2; grid-row:2; color:var(--center); border-style:dashed; }
+.zone-empty  { grid-column:1; grid-row:1; border:none; }
+.zone-empty2 { grid-column:3; grid-row:1; border:none; }
+.zone-empty3 { grid-column:1; grid-row:3; border:none; }
+.zone-empty4 { grid-column:3; grid-row:3; border:none; }
+.zone-icon   { font-size: 18px; }
+
+/* ── FORCE BAR ─────────────────────────────────────────────────── */
+.force-track {
+  background: var(--bg3);
+  border-radius: 3px;
+  height: 14px;
+  overflow: hidden;
+  margin: 8px 0 4px;
+}
+.force-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--right) 0%, var(--center) 50%, var(--red2) 100%);
+  border-radius: 3px;
+  transition: width 0.35s cubic-bezier(.22,.68,0,1.2);
+  width: 0%;
+}
+
+/* ── SESSIONS LIST ─────────────────────────────────────────────── */
+.sessions-list { display: flex; flex-direction: column; gap: 10px; }
+.session-row {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.session-row:hover { border-color: var(--red); transform: translateX(4px); }
+.session-num {
+  font-size: 28px;
+  color: var(--muted2);
+  font-family: 'Bebas Neue', sans-serif;
+  min-width: 36px;
+}
+.session-info { flex: 1; }
+.session-date { font-size: 15px; font-weight: 600; }
+.session-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.session-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.badge {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 20px;
+  background: var(--bg3);
+  color: var(--muted);
+  border: 1px solid var(--border2);
+}
+.badge.red { background: rgba(212,43,43,0.12); color: var(--red3); border-color: rgba(212,43,43,0.25); }
+.badge.gold { background: rgba(201,162,39,0.12); color: var(--gold); border-color: rgba(201,162,39,0.25); }
+
+.session-stats-mini { text-align: right; }
+.session-stats-mini .big { font-size: 28px; color: var(--red); font-family: 'Bebas Neue', sans-serif; line-height: 1; }
+.session-stats-mini .small { font-size: 11px; color: var(--muted); font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.08em; text-transform: uppercase; }
+
+/* ── SESSION RECAP ─────────────────────────────────────────────── */
+.recap-header {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 30px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.recap-header::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: var(--red);
+}
+.recap-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+@media (max-width: 900px) { .recap-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 600px) { .recap-grid { grid-template-columns: 1fr 1fr; } }
+
+.recap-stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}
+.recap-stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; font-family: 'Barlow Condensed', sans-serif; margin-bottom: 6px; }
+.recap-stat-value { font-size: 28px; font-weight: 700; line-height: 1; }
+
+.chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 14px; }
+.chart-card canvas { max-height: 200px; }
+
+/* ── HIT TABLE ─────────────────────────────────────────────────── */
+.hit-table-wrap { max-height: 260px; overflow-y: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted);
+  padding: 0 8px 10px;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0;
+  background: var(--surface);
+}
+td { padding: 8px; border-bottom: 1px solid var(--border); }
+tr:last-child td { border-bottom: none; }
+
+.dir-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* ── PROGRESS VIEW ─────────────────────────────────────────────── */
+.progress-charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+@media (max-width: 700px) { .progress-charts { grid-template-columns: 1fr; } }
+
+/* ── HEATMAP ───────────────────────────────────────────────────── */
+.heatmap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.hm-zone {
+  background: var(--bg3);
+  border-radius: 8px;
+  padding: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.hm-fill {
+  position: absolute; inset: 0;
+  opacity: 0; transition: opacity 0.5s;
+  border-radius: 8px;
+}
+.hm-label { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; position: relative; z-index: 1; }
+.hm-count { font-size: 26px; font-weight: 800; line-height: 1; position: relative; z-index: 1; }
+.hm-pct   { font-size: 11px; color: var(--muted); position: relative; z-index: 1; }
+
+/* ── ENCOURAGEMENT ─────────────────────────────────────────────── */
+.encourage-bar {
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  padding: 10px 24px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* ── TOAST ─────────────────────────────────────────────────────── */
+#toast {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 12px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  transform: translateY(80px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(.22,.68,0,1.2);
+  z-index: 9999;
+  max-width: 300px;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+#toast.toast-success { border-color: var(--right); color: var(--right); }
+#toast.toast-error   { border-color: var(--red3);  color: var(--red3); }
+
+/* ── DEVICE TOKEN SETUP ────────────────────────────────────────── */
+.token-box {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 12px 14px;
+  font-family: monospace;
+  font-size: 13px;
+  word-break: break-all;
+  color: var(--center);
+}
+
+/* ── EMPTY STATE ───────────────────────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+.empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.4; }
+.empty-state h3 { font-size: 24px; margin-bottom: 8px; color: var(--text); }
+.empty-state p  { font-size: 14px; line-height: 1.6; max-width: 360px; margin: 0 auto 24px; }
+
+/* ── ANIMATIONS ────────────────────────────────────────────────── */
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+.fade-in { animation: fadeIn 0.3s ease-out both; }
+
+.live-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--right);
+  display: inline-block;
+  animation: blink 1.5s ease-in-out infinite;
+}
+</style>
+</head>
+<body>
+
+<!-- ── TOAST ─────────────────────────────────────────────────────── -->
+<div id="toast"></div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     AUTH VIEWS
+══════════════════════════════════════════════════════════════════ -->
+
+<!-- Login -->
+<div id="view-login" class="view active">
+  <div class="auth-layout">
+    <div class="auth-left">
+      <div class="auth-brand">
+        <div class="auth-logo"><img src="logo.svg" alt="Iron Fist logo"></div>
+        <div>
+          <h1 style="font-size:48px;letter-spacing:0.06em">IRON <span style="color:var(--red)">FIST</span></h1>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);text-align:center">Martial Arts Training Platform</div>
+        </div>
+        <div class="auth-tagline">Precision. Power. Progress. Track every punch, every session, every breakthrough.</div>
+      </div>
+      <div class="auth-quote">
+        <p id="auth-quote-text">"The fight is won or lost far away from witnesses — behind the lines, in the gym, and out there on the road."</p>
+        <div class="q-author" id="auth-quote-author">— Muhammad Ali</div>
+      </div>
+    </div>
+    <div class="auth-right">
+      <div class="auth-form-box fade-in">
+        <h2 class="auth-form-title" data-i18n="login_title">WELCOME BACK</h2>
+        <p class="auth-form-sub" data-i18n="login_sub">Sign in to your training account</p>
+        <div class="error-msg" id="login-error"></div>
+        <div class="input-group">
+          <label data-i18n="email">Email</label>
+          <input type="email" id="login-email" placeholder="your@email.com">
+        </div>
+        <div class="input-group">
+          <label data-i18n="password">Password</label>
+          <input type="password" id="login-password" placeholder="••••••••">
+        </div>
+        <div style="text-align:right;margin-bottom:20px;margin-top:-8px">
+          <span class="auth-link" onclick="showView('view-forgot')" data-i18n="forgot_pw">Forgot password?</span>
+        </div>
+        <button class="btn btn-primary btn-block" onclick="doLogin()" data-i18n="sign_in">SIGN IN</button>
+        <div class="auth-footer">
+          <span data-i18n="no_account">Don't have an account?</span>
+          <span class="auth-link" onclick="showView('view-signup')" data-i18n="sign_up"> Sign up</span>
+        </div>
+        <div style="margin-top:16px;text-align:center;display:flex;gap:8px;justify-content:center">
+          <button class="lang-btn" onclick="setLang('en')">EN</button>
+          <button class="lang-btn" onclick="setLang('fr')">FR</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Signup -->
+<div id="view-signup" class="view">
+  <div class="auth-layout">
+    <div class="auth-left">
+      <div class="auth-brand">
+        <div class="auth-logo"><img src="logo.svg" alt="Iron Fist logo"></div>
+        <div>
+          <h1 style="font-size:48px;letter-spacing:0.06em">IRON <span style="color:var(--red)">FIST</span></h1>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);text-align:center">Martial Arts Training Platform</div>
+        </div>
+        <div class="auth-tagline">Join thousands of martial artists tracking their journey to mastery.</div>
+      </div>
+      <div class="auth-quote">
+        <p>"The more you sweat in training, the less you bleed in combat."</p>
+        <div class="q-author">— Bruce Lee</div>
+      </div>
+    </div>
+    <div class="auth-right">
+      <div class="auth-form-box fade-in">
+        <h2 class="auth-form-title" data-i18n="signup_title">JOIN THE DOJO</h2>
+        <p class="auth-form-sub" data-i18n="signup_sub">Create your training account</p>
+        <div class="error-msg" id="signup-error"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="input-group">
+            <label data-i18n="first_name">First Name</label>
+            <input type="text" id="signup-fn" placeholder="John">
+          </div>
+          <div class="input-group">
+            <label data-i18n="last_name">Last Name</label>
+            <input type="text" id="signup-ln" placeholder="Doe">
+          </div>
+        </div>
+        <div class="input-group">
+          <label data-i18n="email">Email</label>
+          <input type="email" id="signup-email" placeholder="your@email.com">
+        </div>
+        <div class="input-group">
+          <label data-i18n="password">Password</label>
+          <input type="password" id="signup-password" placeholder="Min. 6 characters">
+        </div>
+        <button class="btn btn-primary btn-block" onclick="doSignup()" data-i18n="create_account">CREATE ACCOUNT</button>
+        <div class="auth-footer">
+          <span data-i18n="have_account">Already have an account?</span>
+          <span class="auth-link" onclick="showView('view-login')" data-i18n="sign_in"> Sign in</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Forgot password -->
+<div id="view-forgot" class="view">
+  <div class="auth-layout">
+    <div class="auth-left">
+      <div class="auth-brand">
+        <div class="auth-logo"><img src="logo.svg" alt="Iron Fist logo"></div>
+        <h1 style="font-size:48px">IRON <span style="color:var(--red)">FIST</span></h1>
+      </div>
+    </div>
+    <div class="auth-right">
+      <div class="auth-form-box fade-in">
+        <h2 class="auth-form-title" data-i18n="reset_title">RESET PASSWORD</h2>
+        <p class="auth-form-sub" data-i18n="reset_sub">Enter your email to receive a reset link</p>
+        <div class="error-msg" id="forgot-error"></div>
+        <div class="success-msg" id="forgot-success"></div>
+        <div class="input-group">
+          <label data-i18n="email">Email</label>
+          <input type="email" id="forgot-email" placeholder="your@email.com">
+        </div>
+        <button class="btn btn-primary btn-block" onclick="doForgot()" data-i18n="send_reset">SEND RESET LINK</button>
+        <div class="auth-footer">
+          <span class="auth-link" onclick="showView('view-login')" data-i18n="back_login">← Back to login</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     APP SHELL
+══════════════════════════════════════════════════════════════════ -->
+<div id="view-app" class="view">
+  <div class="app-shell">
+
+    <nav class="navbar">
+      <div class="nav-brand" onclick="navTo('home')">
+        <div class="nav-logo"><img src="logo.svg" alt="Iron Fist logo"></div>
+        <h1 class="nav-title">IRON <span>FIST</span></h1>
+      </div>
+      <div class="nav-links">
+        <button class="nav-link active" data-page="home" onclick="navTo('home')" data-i18n="nav_home">Home</button>
+        <button class="nav-link" data-page="live" onclick="navTo('live')" data-i18n="nav_live">Live</button>
+        <button class="nav-link" data-page="sessions" onclick="navTo('sessions')" data-i18n="nav_sessions">Sessions</button>
+        <button class="nav-link" data-page="progress" onclick="navTo('progress')" data-i18n="nav_progress">Progress</button>
+        <button class="nav-link" data-page="settings" onclick="navTo('settings')" data-i18n="nav_settings">Settings</button>
+      </div>
+      <div class="nav-right">
+        <button class="lang-btn" onclick="toggleLang()">EN/FR</button>
+        <button class="icon-btn" onclick="toggleTheme()" title="Toggle theme">
+          <span id="theme-icon">☀</span>
+        </button>
+        <div class="user-chip" onclick="navTo('settings')">
+          <div class="user-avatar" id="nav-avatar">?</div>
+          <span class="user-name" id="nav-name">—</span>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="doLogout()" data-i18n="logout">Logout</button>
+      </div>
+    </nav>
+
+    <!-- HOME PAGE -->
+    <div id="page-home" class="page fade-in">
+      <div class="home-hero">
+        <div>
+          <div class="hero-welcome" data-i18n="welcome_back">WELCOME BACK,</div>
+          <div class="hero-name" id="hero-name">FIGHTER</div>
+          <div class="hero-tagline" id="hero-tagline">Ready to train? Start a session and let's track your progress.</div>
+          <div class="hero-actions">
+            <button class="btn btn-primary" onclick="startSession()" id="btn-start-session" data-i18n="start_session">▶ START SESSION</button>
+            <button class="btn btn-ghost" id="btn-end-session" onclick="endSession()" style="display:none" data-i18n="end_session">■ END SESSION</button>
+            <button class="btn btn-ghost" onclick="navTo('live')" data-i18n="view_live">LIVE VIEW</button>
+          </div>
+        </div>
+        <div class="hero-right">
+          <div class="hero-stat-big" id="home-total-sessions">0</div>
+          <div class="hero-stat-label" data-i18n="total_sessions">Total Sessions</div>
+        </div>
+      </div>
+
+      <div id="session-banner" class="session-banner" style="display:none">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="session-live-dot"></span>
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;color:var(--red3)" data-i18n="session_active">Session Active</span>
+          </div>
+          <div class="session-timer" id="session-timer">00:00:00</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:32px;font-weight:700;color:var(--text)" id="banner-hits">0</div>
+          <div class="session-label" data-i18n="hits_this_session">Hits this session</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:32px;font-weight:700;color:var(--red)" id="banner-force">—</div>
+          <div class="session-label" data-i18n="avg_force">Avg Force</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:32px;font-weight:700;color:var(--gold)" id="banner-precision">—</div>
+          <div class="session-label" data-i18n="avg_precision">Avg Precision</div>
+        </div>
+        <button class="btn btn-ghost" onclick="endSession()" data-i18n="end_session">■ END SESSION</button>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label" data-i18n="total_hits">Total Hits</div>
+          <div class="stat-value" id="stat-total-hits">—</div>
+          <div class="stat-sub" data-i18n="all_time">All time</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label" data-i18n="best_force">Best Force</div>
+          <div class="stat-value" style="color:var(--red)" id="stat-best-force">—</div>
+          <div class="stat-sub" data-i18n="impact_score">Impact score</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label" data-i18n="best_precision">Best Precision</div>
+          <div class="stat-value" style="color:var(--gold)" id="stat-best-precision">—</div>
+          <div class="stat-sub">%</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label" data-i18n="total_time">Total Training Time</div>
+          <div class="stat-value" id="stat-total-time">—</div>
+          <div class="stat-sub" data-i18n="hours_min">hrs / min</div>
+        </div>
+      </div>
+
+      <div id="home-recent-sessions"></div>
+    </div>
+
+    <!-- LIVE PAGE -->
+    <div id="page-live" class="page fade-in" style="display:none">
+      <div class="page-title" data-i18n="live_title">LIVE TRAINING</div>
+      <div class="page-sub" id="live-sub">No active session. Start one from the Home tab.</div>
+
+      <div class="live-grid">
+        <div class="card">
+          <div class="card-title" data-i18n="last_hit">Last Hit</div>
+          <div style="font-size:48px;font-weight:800;text-align:center;font-family:'Bebas Neue',sans-serif;letter-spacing:0.06em;margin:10px 0 4px;transition:color 0.2s" id="live-dir">—</div>
+          <div style="text-align:center;font-size:13px;color:var(--muted)" id="live-score-text">Waiting...</div>
+          <div style="margin-top:16px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px">
+              <span data-i18n="impact_intensity">Impact Intensity</span>
+              <span id="live-force-val">—</span>
+            </div>
+            <div class="force-track"><div class="force-fill" id="live-force-bar"></div></div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted2);margin-top:2px"><span>0</span><span>100</span></div>
+          </div>
+          <div style="margin-top:16px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px">
+              <span data-i18n="precision">Precision</span>
+              <span id="live-prec-val">—</span>
+            </div>
+            <div class="force-track"><div class="force-fill" id="live-prec-bar" style="background:linear-gradient(90deg,var(--up) 0%,var(--gold) 100%)"></div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title" data-i18n="zone_map">Hit Zone Map</div>
+          <div class="punch-map">
+            <div class="zone-empty"></div>
+            <div class="zone" id="zone-up"><span class="zone-icon">▲</span><span>UP</span></div>
+            <div class="zone-empty2"></div>
+            <div class="zone" id="zone-left"><span class="zone-icon">◀</span><span>LEFT</span></div>
+            <div class="zone" id="zone-center"><span class="zone-icon">◎</span><span>CTR</span></div>
+            <div class="zone" id="zone-right"><span class="zone-icon">▶</span><span>RIGHT</span></div>
+            <div class="zone-empty3"></div>
+            <div class="zone" id="zone-down"><span class="zone-icon">▼</span><span>DOWN</span></div>
+            <div class="zone-empty4"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title" data-i18n="session_metrics">Session Metrics</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="background:var(--bg3);border-radius:6px;padding:12px">
+              <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;font-family:'Barlow Condensed',sans-serif" data-i18n="total_hits">Total Hits</div>
+              <div style="font-size:30px;font-weight:700" id="live-total">0</div>
+            </div>
+            <div style="background:var(--bg3);border-radius:6px;padding:12px">
+              <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;font-family:'Barlow Condensed',sans-serif" data-i18n="avg_force">Avg Force</div>
+              <div style="font-size:30px;font-weight:700;color:var(--red)" id="live-avg-force">—</div>
+            </div>
+            <div style="background:var(--bg3);border-radius:6px;padding:12px">
+              <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;font-family:'Barlow Condensed',sans-serif" data-i18n="avg_precision">Avg Precision</div>
+              <div style="font-size:30px;font-weight:700;color:var(--gold)" id="live-avg-prec">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Zone heatmap -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-title" data-i18n="zone_heatmap">Zone Heatmap</div>
+        <div class="heatmap-grid">
+          <div class="hm-zone"><div class="hm-fill" id="hmbg-up" style="background:var(--up)"></div><div class="hm-label" style="color:var(--up)" data-i18n="up">Up</div><div class="hm-count" id="hmc-up">0</div><div class="hm-pct" id="hmp-up">0%</div></div>
+          <div class="hm-zone"><div class="hm-fill" id="hmbg-down" style="background:var(--down)"></div><div class="hm-label" style="color:var(--down)" data-i18n="down">Down</div><div class="hm-count" id="hmc-down">0</div><div class="hm-pct" id="hmp-down">0%</div></div>
+          <div class="hm-zone"><div class="hm-fill" id="hmbg-left" style="background:var(--left)"></div><div class="hm-label" style="color:var(--left)" data-i18n="left">Left</div><div class="hm-count" id="hmc-left">0</div><div class="hm-pct" id="hmp-left">0%</div></div>
+          <div class="hm-zone"><div class="hm-fill" id="hmbg-right" style="background:var(--right)"></div><div class="hm-label" style="color:var(--right)" data-i18n="right">Right</div><div class="hm-count" id="hmc-right">0</div><div class="hm-pct" id="hmp-right">0%</div></div>
+          <div class="hm-zone" style="grid-column:1/-1"><div class="hm-fill" id="hmbg-center" style="background:var(--center)"></div><div class="hm-label" style="color:var(--center)" data-i18n="center">Center</div><div class="hm-count" id="hmc-center">0</div><div class="hm-pct" id="hmp-center">0%</div></div>
+        </div>
+      </div>
+
+      <!-- Hit table -->
+      <div class="card">
+        <div class="card-title" data-i18n="recent_hits">Recent Hits</div>
+        <div class="hit-table-wrap">
+          <table>
+            <thead><tr>
+              <th>#</th>
+              <th data-i18n="zone">Zone</th>
+              <th data-i18n="force">Force</th>
+              <th data-i18n="precision">Precision</th>
+              <th data-i18n="time">Time</th>
+            </tr></thead>
+            <tbody id="live-tbody"><tr><td colspan="5" style="color:var(--muted);text-align:center;padding:20px" data-i18n="no_hits">No hits yet</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SESSIONS PAGE -->
+    <div id="page-sessions" class="page fade-in" style="display:none">
+      <div class="page-title" data-i18n="sessions_title">MY SESSIONS</div>
+      <div class="page-sub" data-i18n="sessions_sub">Click a session to see the full recap</div>
+      <div id="sessions-list-container"></div>
+    </div>
+
+    <!-- SESSION RECAP PAGE -->
+    <div id="page-recap" class="page fade-in" style="display:none">
+      <div style="margin-bottom:20px">
+        <button class="btn btn-ghost btn-sm" onclick="navTo('sessions')">← <span data-i18n="back_sessions">Back to Sessions</span></button>
+      </div>
+      <div id="recap-content"></div>
+    </div>
+
+    <!-- PROGRESS PAGE -->
+    <div id="page-progress" class="page fade-in" style="display:none">
+      <div class="page-title" data-i18n="progress_title">MY PROGRESS</div>
+      <div class="page-sub" data-i18n="progress_sub">Track your force and precision across sessions</div>
+      <div class="progress-charts">
+        <div class="chart-card">
+          <div class="card-title" data-i18n="force_over_sessions">Avg Force Per Session</div>
+          <canvas id="chart-force"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="card-title" data-i18n="precision_over_sessions">Avg Precision Per Session</div>
+          <canvas id="chart-precision"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="card-title" data-i18n="training_time">Training Time Per Session (minutes)</div>
+        <canvas id="chart-time"></canvas>
+      </div>
+    </div>
+
+    <!-- SETTINGS PAGE -->
+    <div id="page-settings" class="page fade-in" style="display:none">
+      <div class="page-title" data-i18n="settings_title">SETTINGS</div>
+      <div class="page-sub" data-i18n="settings_sub">Manage your account and device</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:800px">
+        <div class="card">
+          <div class="card-title" data-i18n="account">Account</div>
+          <div style="margin-bottom:12px">
+            <div style="font-size:22px;font-weight:700" id="settings-name">—</div>
+            <div style="font-size:14px;color:var(--muted);margin-top:2px" id="settings-email">—</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="doLogout()" data-i18n="logout">Logout</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title" data-i18n="appearance">Appearance</div>
+          <div style="display:flex;gap:10px;margin-bottom:14px">
+            <button class="btn btn-ghost btn-sm" onclick="toggleTheme()" data-i18n="toggle_theme">Toggle Dark/Light</button>
+            <button class="btn btn-ghost btn-sm" onclick="toggleLang()" id="lang-toggle-btn">FR / EN</button>
+          </div>
+        </div>
+
+        <div class="card" style="grid-column:1/-1">
+          <div class="card-title" data-i18n="esp32_device">ESP32 Device Token</div>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6" data-i18n="device_token_info">Generate a device token and paste it into your ESP32 firmware. The ESP32 uses this to authenticate and link hits to your account.</p>
+          <div id="device-token-display" class="token-box" style="margin-bottom:12px" data-i18n="no_token">No token generated yet.</div>
+          <button class="btn btn-primary btn-sm" onclick="generateDeviceToken()" data-i18n="generate_token">Generate New Token</button>
+          <div style="margin-top:12px;font-size:12px;color:var(--muted)" data-i18n="token_note">Paste this token as <code style="color:var(--center)">DEVICE_TOKEN</code> in your ESP32 sketch.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="encourage-bar" id="encourage-bar">
+    "The more you sweat in training, the less you bleed in combat."
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════════════════════ -->
+<script>
+// ── i18n ──────────────────────────────────────────────────────────
+const T = {
+  en: {
+    login_title:'WELCOME BACK', login_sub:'Sign in to your training account',
+    signup_title:'JOIN THE DOJO', signup_sub:'Create your training account',
+    reset_title:'RESET PASSWORD', reset_sub:'Enter your email to receive a reset link',
+    email:'Email', password:'Password', first_name:'First Name', last_name:'Last Name',
+    forgot_pw:'Forgot password?', sign_in:'SIGN IN', sign_up:'Sign up',
+    no_account:"Don't have an account?", have_account:'Already have an account?',
+    send_reset:'SEND RESET LINK', back_login:'← Back to login',
+    create_account:'CREATE ACCOUNT',
+    nav_home:'Home', nav_live:'Live', nav_sessions:'Sessions',
+    nav_progress:'Progress', nav_settings:'Settings', logout:'Logout',
+    welcome_back:'WELCOME BACK,', start_session:'▶ START SESSION',
+    end_session:'■ END SESSION', view_live:'LIVE VIEW',
+    total_sessions:'Total Sessions', total_hits:'Total Hits',
+    best_force:'Best Force', best_precision:'Best Precision',
+    total_time:'Total Training Time', hours_min:'hrs / min',
+    impact_score:'Impact score', all_time:'All time',
+    live_title:'LIVE TRAINING', last_hit:'Last Hit',
+    impact_intensity:'Impact Intensity', precision:'Precision',
+    zone_map:'Hit Zone Map', session_metrics:'Session Metrics',
+    avg_force:'Avg Force', avg_precision:'Avg Precision',
+    zone_heatmap:'Zone Heatmap', recent_hits:'Recent Hits',
+    up:'Up', down:'Down', left:'Left', right:'Right', center:'Center',
+    zone:'Zone', force:'Force', time:'Time', no_hits:'No hits yet',
+    sessions_title:'MY SESSIONS', sessions_sub:'Click a session to see the full recap',
+    back_sessions:'Back to Sessions',
+    progress_title:'MY PROGRESS', progress_sub:'Track your force and precision across sessions',
+    force_over_sessions:'Avg Force Per Session', precision_over_sessions:'Avg Precision Per Session',
+    training_time:'Training Time Per Session (minutes)',
+    settings_title:'SETTINGS', settings_sub:'Manage your account and device',
+    account:'Account', appearance:'Appearance', toggle_theme:'Toggle Dark/Light',
+    esp32_device:'ESP32 Device Token',
+    device_token_info:'Generate a device token and paste it into your ESP32 firmware.',
+    no_token:'No token generated yet.', generate_token:'Generate New Token',
+    token_note:'Paste this token as DEVICE_TOKEN in your ESP32 sketch.',
+    session_active:'Session Active', hits_this_session:'Hits this session',
+    hits:'hits', duration:'Duration', peak_force:'Peak Force',
+    zone_breakdown:'Zone Breakdown', session_number:'Session',
+  },
+  fr: {
+    login_title:'BIENVENUE', login_sub:'Connectez-vous à votre compte',
+    signup_title:'REJOINDRE LE DOJO', signup_sub:'Créez votre compte d\'entraînement',
+    reset_title:'RÉINITIALISER', reset_sub:'Entrez votre email pour recevoir un lien',
+    email:'Email', password:'Mot de passe', first_name:'Prénom', last_name:'Nom',
+    forgot_pw:'Mot de passe oublié?', sign_in:'SE CONNECTER', sign_up:'S\'inscrire',
+    no_account:"Pas de compte?", have_account:'Déjà un compte?',
+    send_reset:'ENVOYER LE LIEN', back_login:'← Retour',
+    create_account:'CRÉER UN COMPTE',
+    nav_home:'Accueil', nav_live:'En direct', nav_sessions:'Séances',
+    nav_progress:'Progrès', nav_settings:'Paramètres', logout:'Déconnexion',
+    welcome_back:'BIENVENUE,', start_session:'▶ DÉMARRER',
+    end_session:'■ TERMINER', view_live:'VUE EN DIRECT',
+    total_sessions:'Total Séances', total_hits:'Total Frappes',
+    best_force:'Meilleure Force', best_precision:'Meilleure Précision',
+    total_time:'Temps Total', hours_min:'h / min',
+    impact_score:'Score d\'impact', all_time:'Au total',
+    live_title:'EN DIRECT', last_hit:'Dernière Frappe',
+    impact_intensity:'Intensité', precision:'Précision',
+    zone_map:'Carte des Zones', session_metrics:'Métriques',
+    avg_force:'Force Moy.', avg_precision:'Précision Moy.',
+    zone_heatmap:'Carte Thermique', recent_hits:'Frappes Récentes',
+    up:'Haut', down:'Bas', left:'Gauche', right:'Droite', center:'Centre',
+    zone:'Zone', force:'Force', time:'Heure', no_hits:'Aucune frappe',
+    sessions_title:'MES SÉANCES', sessions_sub:'Cliquez pour voir le récapitulatif',
+    back_sessions:'Retour aux Séances',
+    progress_title:'MES PROGRÈS', progress_sub:'Suivez votre force et précision',
+    force_over_sessions:'Force Moy. par Séance', precision_over_sessions:'Précision Moy. par Séance',
+    training_time:'Temps d\'entraînement par Séance (min)',
+    settings_title:'PARAMÈTRES', settings_sub:'Gérez votre compte et appareil',
+    account:'Compte', appearance:'Apparence', toggle_theme:'Mode Clair/Sombre',
+    esp32_device:'Jeton d\'Appareil ESP32',
+    device_token_info:'Générez un jeton et collez-le dans votre firmware ESP32.',
+    no_token:'Aucun jeton généré.', generate_token:'Générer un Nouveau Jeton',
+    token_note:'Collez ce jeton comme DEVICE_TOKEN dans votre sketch ESP32.',
+    session_active:'Séance Active', hits_this_session:'Frappes cette séance',
+    hits:'frappes', duration:'Durée', peak_force:'Force Max',
+    zone_breakdown:'Répartition des Zones', session_number:'Séance',
+  }
+};
+
+let lang = localStorage.getItem('lang') || 'en';
+function t(key) { return T[lang][key] || T.en[key] || key; }
+
+function applyLang() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.getAttribute('data-i18n');
+    el.textContent = t(k);
+  });
+}
+
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('lang', l);
+  applyLang();
+  renderCurrentPage();
+}
+
+function toggleLang() {
+  setLang(lang === 'en' ? 'fr' : 'en');
+}
+
+// ── Theme ──────────────────────────────────────────────────────────
+let theme = localStorage.getItem('theme') || 'dark';
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', theme === 'light' ? 'light' : '');
+  document.getElementById('theme-icon').textContent = theme === 'light' ? '☾' : '☀';
+}
+function toggleTheme() {
+  theme = theme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('theme', theme);
+  applyTheme();
+}
+applyTheme();
+
+// ── Encouragement quotes ───────────────────────────────────────────
+const QUOTES = [
+  {en:'"The fight is won or lost far away from witnesses."', fr:'"Le combat se gagne loin des témoins."', author:'Muhammad Ali'},
+  {en:'"Pain is temporary. Quitting lasts forever."', fr:'"La douleur est temporaire. Abandonner dure pour toujours."', author:'Lance Armstrong'},
+  {en:'"Champions are made from something deep inside them."', fr:'"Les champions sont faits de quelque chose au fond d\'eux."', author:'Muhammad Ali'},
+  {en:'"The more you sweat in training, the less you bleed in combat."', fr:'"Plus tu transpires à l\'entraînement, moins tu saignes au combat."', author:'Bruce Lee'},
+  {en:'"Be water, my friend."', fr:'"Sois comme l\'eau, mon ami."', author:'Bruce Lee'},
+  {en:'"It\'s not the size of the dog in the fight."', fr:'"Ce n\'est pas la taille du chien dans le combat."', author:'Mark Twain'},
+];
+function randomQuote() {
+  const q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+  return { text: q[lang] || q.en, author: q.author };
+}
+function setEncourage() {
+  const q = randomQuote();
+  const el = document.getElementById('encourage-bar');
+  if (el) el.textContent = q.text + ' — ' + q.author;
+  const aqt = document.getElementById('auth-quote-text');
+  const aqa = document.getElementById('auth-quote-author');
+  if (aqt && aqa) {
+    const aq = randomQuote();
+    aqt.textContent = aq.text;
+    aqa.textContent = '— ' + aq.author;
+  }
+}
+
+// ── State ──────────────────────────────────────────────────────────
+let authToken = localStorage.getItem('authToken');
+let currentUser = null;
+let currentPage = 'home';
+let sessionStartTime = null;
+let sessionTimerInterval = null;
+let pollInterval = null;
+let lastHitId = null;
+let progressCharts = {};
+
+const dirColors = { up:'var(--up)', down:'var(--down)', left:'var(--left)', right:'var(--right)', center:'var(--center)' };
+
+// ── View management ────────────────────────────────────────────────
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  setEncourage();
+  applyLang();
+}
+
+function navTo(page) {
+  currentPage = page;
+  document.querySelectorAll('[data-page]').forEach(l => l.classList.remove('active'));
+  const link = document.querySelector(`[data-page="${page}"]`);
+  if (link) link.classList.add('active');
+
+  document.querySelectorAll('#view-app [id^="page-"]').forEach(p => p.style.display = 'none');
+  const pageEl = document.getElementById('page-' + page);
+  if (pageEl) { pageEl.style.display = ''; pageEl.classList.add('fade-in'); }
+
+  renderCurrentPage();
+}
+
+function renderCurrentPage() {
+  if (currentPage === 'home')     renderHome();
+  if (currentPage === 'sessions') renderSessions();
+  if (currentPage === 'progress') renderProgress();
+  if (currentPage === 'settings') renderSettings();
+  applyLang();
+}
+
+// ── API helpers ────────────────────────────────────────────────────
+async function api(path, options = {}) {
+  const res = await fetch(path, {
+    headers: { 'Content-Type': 'application/json', ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}) },
+    ...options,
+  });
+  return res.json();
+}
+
+// ── Toast ──────────────────────────────────────────────────────────
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `show toast-${type}`;
+  setTimeout(() => el.className = '', 3000);
+}
+
+// ── Auth ───────────────────────────────────────────────────────────
+async function doLogin() {
+  const email    = document.getElementById('login-email').value;
+  const password = document.getElementById('login-password').value;
+  const errEl    = document.getElementById('login-error');
+  errEl.style.display = 'none';
+
+  const data = await api('/api/auth/login', { method:'POST', body: JSON.stringify({ email, password }) });
+  if (data.error) { errEl.textContent = data.error; errEl.style.display = ''; return; }
+
+  authToken = data.token;
+  currentUser = data.user;
+  localStorage.setItem('authToken', authToken);
+  enterApp();
+}
+
+async function doSignup() {
+  const firstName = document.getElementById('signup-fn').value;
+  const lastName  = document.getElementById('signup-ln').value;
+  const email     = document.getElementById('signup-email').value;
+  const password  = document.getElementById('signup-password').value;
+  const errEl     = document.getElementById('signup-error');
+  errEl.style.display = 'none';
+
+  const data = await api('/api/auth/signup', { method:'POST', body: JSON.stringify({ firstName, lastName, email, password }) });
+  if (data.error) { errEl.textContent = data.error; errEl.style.display = ''; return; }
+
+  authToken = data.token;
+  currentUser = data.user;
+  localStorage.setItem('authToken', authToken);
+  enterApp();
+}
+
+async function doForgot() {
+  const email   = document.getElementById('forgot-email').value;
+  const errEl   = document.getElementById('forgot-error');
+  const succEl  = document.getElementById('forgot-success');
+  errEl.style.display = 'none'; succEl.style.display = 'none';
+
+  const data = await api('/api/auth/reset-request', { method:'POST', body: JSON.stringify({ email }) });
+  if (data.error) { errEl.textContent = data.error; errEl.style.display = ''; return; }
+  succEl.textContent = lang === 'fr' ? 'Vérifiez votre email.' : 'Check your email for reset instructions.';
+  succEl.style.display = '';
+}
+
+function doLogout() {
+  authToken = null; currentUser = null;
+  localStorage.removeItem('authToken');
+  stopPolling(); stopSessionTimer();
+  showView('view-login');
+}
+
+// ── App entry ──────────────────────────────────────────────────────
+async function enterApp() {
+  if (!authToken) { showView('view-login'); return; }
+  const me = await api('/api/me');
+  if (me.error) { doLogout(); return; }
+  currentUser = me;
+
+  document.getElementById('nav-avatar').textContent = (me.firstName[0] + me.lastName[0]).toUpperCase();
+  document.getElementById('nav-name').textContent   = me.firstName;
+  document.getElementById('hero-name').innerHTML    = `${me.firstName.toUpperCase()} <span style="color:var(--red)">${me.lastName.toUpperCase()}</span>`;
+  document.getElementById('hero-tagline').textContent = lang === 'fr'
+    ? `Prêt à t'entraîner, ${me.firstName}? Lance une séance et suivons tes progrès.`
+    : `Ready to train, ${me.firstName}? Start a session and let's track your progress.`;
+
+  showView('view-app');
+  navTo('home');
+
+  if (me.activeSessionId) {
+    resumeSession();
+  }
+  startPolling();
+  setEncourage();
+  setInterval(setEncourage, 60000);
+}
+
+// ── Session management ─────────────────────────────────────────────
+async function startSession() {
+  const data = await api('/api/sessions/start', { method:'POST', body:'{}' });
+  if (data.error) { toast(data.error, 'error'); return; }
+  currentUser.activeSessionId = data.sessionId;
+  sessionStartTime = Date.now();
+  startSessionTimer();
+  updateSessionUI(true);
+  lastHitId = null;
+  toast(lang === 'fr' ? 'Séance démarrée!' : 'Session started!');
+  navTo('live');
+}
+
+async function endSession() {
+  if (!confirm(lang === 'fr' ? 'Terminer la séance?' : 'End this session?')) return;
+  await api('/api/sessions/end', { method:'POST', body:'{}' });
+  currentUser.activeSessionId = null;
+  stopSessionTimer();
+  updateSessionUI(false);
+  toast(lang === 'fr' ? 'Séance terminée!' : 'Session ended! Great work!');
+  navTo('sessions');
+}
+
+function resumeSession() {
+  sessionStartTime = Date.now() - 60000; // approximate
+  startSessionTimer();
+  updateSessionUI(true);
+}
+
+function updateSessionUI(active) {
+  const banner   = document.getElementById('session-banner');
+  const btnStart = document.getElementById('btn-start-session');
+  const btnEnd   = document.getElementById('btn-end-session');
+  banner.style.display   = active ? '' : 'none';
+  btnStart.style.display = active ? 'none' : '';
+  btnEnd.style.display   = active ? '' : 'none';
+  document.getElementById('live-sub').textContent = active
+    ? (lang === 'fr' ? 'Séance active — données en temps réel' : 'Session active — live data updating every 250ms')
+    : (lang === 'fr' ? 'Aucune séance active. Démarrez depuis l\'accueil.' : 'No active session. Start one from the Home tab.');
+}
+
+function startSessionTimer() {
+  stopSessionTimer();
+  sessionTimerInterval = setInterval(() => {
+    if (!sessionStartTime) return;
+    const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
+    const h = String(Math.floor(elapsed / 3600)).padStart(2,'0');
+    const m = String(Math.floor((elapsed % 3600) / 60)).padStart(2,'0');
+    const s = String(elapsed % 60).padStart(2,'0');
+    const el = document.getElementById('session-timer');
+    if (el) el.textContent = `${h}:${m}:${s}`;
+  }, 1000);
+}
+function stopSessionTimer() {
+  clearInterval(sessionTimerInterval);
+  sessionTimerInterval = null;
+}
+
+// ── Polling ────────────────────────────────────────────────────────
+async function pollState() {
+  if (!authToken || !currentUser?.activeSessionId) return;
+  const deviceToken = localStorage.getItem('deviceToken');
+  if (!deviceToken) return;
+
+  try {
+    const state = await fetch(`/api/state?token=${deviceToken}`).then(r => r.json());
+    if (state.error) return;
+    updateLiveUI(state);
+  } catch { /* network blip */ }
+}
+
+function startPolling() { stopPolling(); pollInterval = setInterval(pollState, 250); }
+function stopPolling()   { clearInterval(pollInterval); }
+
+function updateLiveUI(state) {
+  const { latestHit, totalHits, hitHistory, session } = state;
+
+  if (latestHit && latestHit.id !== lastHitId) {
+    lastHitId = latestHit.id;
+    const dir = latestHit.direction;
+    const col = dirColors[dir] || 'var(--text)';
+
+    // Last hit card
+    const dirEl = document.getElementById('live-dir');
+    if (dirEl) { dirEl.textContent = dir.toUpperCase(); dirEl.style.color = col; }
+    const scoreEl = document.getElementById('live-score-text');
+    if (scoreEl) scoreEl.textContent = `${t('force')}: ${latestHit.normForce} · ${t('precision')}: ${latestHit.precisionScore}%`;
+
+    const fBar = document.getElementById('live-force-bar');
+    const fVal = document.getElementById('live-force-val');
+    if (fBar) fBar.style.width = latestHit.normForce + '%';
+    if (fVal) fVal.textContent = latestHit.normForce;
+
+    const pBar = document.getElementById('live-prec-bar');
+    const pVal = document.getElementById('live-prec-val');
+    if (pBar) pBar.style.width = latestHit.precisionScore + '%';
+    if (pVal) pVal.textContent = latestHit.precisionScore + '%';
+
+    flashZone(dir);
+    setActiveZone(dir);
+  }
+
+  // Counters
+  const totalEl = document.getElementById('live-total');
+  if (totalEl) totalEl.textContent = totalHits;
+  const bannerHits = document.getElementById('banner-hits');
+  if (bannerHits) bannerHits.textContent = totalHits;
+
+  if (session) {
+    const avgF = document.getElementById('live-avg-force');
+    const avgP = document.getElementById('live-avg-prec');
+    const bF   = document.getElementById('banner-force');
+    const bP   = document.getElementById('banner-precision');
+    if (avgF) avgF.textContent = session.avgForce || '—';
+    if (avgP) avgP.textContent = session.avgPrecision ? session.avgPrecision + '%' : '—';
+    if (bF)   bF.textContent   = session.avgForce || '—';
+    if (bP)   bP.textContent   = session.avgPrecision ? session.avgPrecision + '%' : '—';
+
+    // Heatmap
+    const hm = session.zoneBreakdown || {};
+    const total = totalHits || 1;
+    ['up','down','left','right','center'].forEach(d => {
+      const c = hm[d] || 0;
+      const pct = Math.round((c / total) * 100);
+      const cEl = document.getElementById(`hmc-${d}`);
+      const pEl = document.getElementById(`hmp-${d}`);
+      const bEl = document.getElementById(`hmbg-${d}`);
+      if (cEl) cEl.textContent = c;
+      if (pEl) pEl.textContent = pct + '%';
+      if (bEl) bEl.style.opacity = (pct / 100) * 0.4;
+    });
+  }
+
+  // Hit table
+  const tbody = document.getElementById('live-tbody');
+  if (tbody && hitHistory && hitHistory.length > 0) {
+    const rows = [...hitHistory].reverse().slice(0,50).map(h => {
+      const col = dirColors[h.direction] || 'var(--muted)';
+      const timeStr = new Date(h.serverTime).toLocaleTimeString();
+      return `<tr>
+        <td style="color:var(--muted)">${h.id?.slice(-4) || '—'}</td>
+        <td><span class="dir-pill" style="background:${col}22;color:${col}">${h.direction.toUpperCase()}</span></td>
+        <td style="font-weight:700">${h.normForce}</td>
+        <td style="color:var(--gold)">${h.precisionScore}%</td>
+        <td style="color:var(--muted)">${timeStr}</td>
+      </tr>`;
+    }).join('');
+    tbody.innerHTML = rows;
+  }
+}
+
+function flashZone(dir) {
+  const el = document.getElementById('zone-' + dir);
+  if (!el) return;
+  el.classList.remove('zone-flash');
+  void el.offsetWidth;
+  el.classList.add('zone-flash');
+  el.addEventListener('animationend', () => el.classList.remove('zone-flash'), { once: true });
+}
+
+function setActiveZone(dir) {
+  ['up','down','left','right','center'].forEach(d => {
+    const el = document.getElementById('zone-' + d);
+    if (el) el.classList.toggle('active', d === dir);
+  });
+}
+
+// ── Home render ────────────────────────────────────────────────────
+async function renderHome() {
+  const sessions = await api('/api/sessions');
+  const active = sessions.filter(s => !s.endTime);
+  const done   = sessions.filter(s =>  s.endTime);
+
+  document.getElementById('home-total-sessions').textContent = sessions.length;
+
+  const totalHits = sessions.reduce((a, s) => a + s.hitCount, 0);
+  const bestForce = sessions.reduce((a, s) => Math.max(a, s.peakForce), 0);
+  const bestPrec  = sessions.reduce((a, s) => Math.max(a, s.avgPrecision), 0);
+  const totalSecs = done.reduce((a, s) => a + (s.durationSeconds || 0), 0);
+  const totalH    = Math.floor(totalSecs / 3600);
+  const totalM    = Math.floor((totalSecs % 3600) / 60);
+
+  document.getElementById('stat-total-hits').textContent    = totalHits || '—';
+  document.getElementById('stat-best-force').textContent    = bestForce || '—';
+  document.getElementById('stat-best-precision').textContent = bestPrec ? bestPrec + '%' : '—';
+  document.getElementById('stat-total-time').textContent    = totalH > 0 ? `${totalH}h ${totalM}m` : `${totalM}m`;
+
+  const container = document.getElementById('home-recent-sessions');
+  if (done.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="icon">🥊</div><h3>${lang==='fr'?'Aucune séance terminée':'No completed sessions yet'}</h3><p>${lang==='fr'?'Démarrez votre première séance pour commencer à suivre vos progrès.':'Start your first session to begin tracking your progress.'}</p><button class="btn btn-primary" onclick="startSession()">${t('start_session')}</button></div>`;
+    return;
+  }
+
+  const recent = done.slice(0, 5);
+  container.innerHTML = `
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Recent Sessions</div>
+    <div class="sessions-list">
+      ${recent.map((s, i) => sessionRowHTML(s, done.length - i)).join('')}
+    </div>
+  `;
+}
+
+function sessionRowHTML(s, num) {
+  const date = new Date(s.startTime).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', { weekday:'short', month:'short', day:'numeric', year:'numeric' });
+  const dur  = s.durationSeconds ? formatDuration(s.durationSeconds) : '—';
+  return `<div class="session-row" onclick="openRecap('${s.id}')">
+    <div class="session-num">#${num}</div>
+    <div class="session-info">
+      <div class="session-date">${date}</div>
+      <div class="session-meta">${dur} · ${s.hitCount} ${t('hits')}</div>
+      <div class="session-badges">
+        <span class="badge red">${t('force')}: ${s.avgForce}</span>
+        <span class="badge gold">${t('precision')}: ${s.avgPrecision}%</span>
+      </div>
+    </div>
+    <div class="session-stats-mini">
+      <div class="big">${s.hitCount}</div>
+      <div class="small">${t('hits')}</div>
+    </div>
+  </div>`;
+}
+
+function formatDuration(secs) {
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = secs % 60;
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m ${s}s`;
+  return `${s}s`;
+}
+
+// ── Sessions render ────────────────────────────────────────────────
+async function renderSessions() {
+  const sessions = await api('/api/sessions');
+  const done = sessions.filter(s => s.endTime).sort((a,b) => b.startTime - a.startTime);
+  const container = document.getElementById('sessions-list-container');
+
+  if (done.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="icon">📋</div><h3>${lang==='fr'?'Aucune séance':'No sessions yet'}</h3><p>${lang==='fr'?'Vos séances terminées apparaîtront ici.':'Your completed sessions will appear here.'}</p></div>`;
+    return;
+  }
+  container.innerHTML = `<div class="sessions-list">${done.map((s, i) => sessionRowHTML(s, done.length - i)).join('')}</div>`;
+}
+
+async function openRecap(sessionId) {
+  currentPage = 'recap';
+  document.querySelectorAll('#view-app [id^="page-"]').forEach(p => p.style.display = 'none');
+  document.getElementById('page-recap').style.display = '';
+
+  const data = await api(`/api/sessions/${sessionId}`);
+  const { session, hits } = data;
+  const date = new Date(session.startTime).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+  const dur  = session.durationSeconds ? formatDuration(session.durationSeconds) : '—';
+
+  const zbd = session.zoneBreakdown || {};
+  const topZone = Object.entries(zbd).sort((a,b) => b[1]-a[1])[0];
+
+  document.getElementById('recap-content').innerHTML = `
+    <div class="recap-header">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">${t('session_number')}</div>
+      <h2 style="font-size:36px">${date}</h2>
+      <div style="color:var(--muted);margin-top:6px">${dur} · ${session.hitCount} ${t('hits')}</div>
+    </div>
+
+    <div class="recap-grid">
+      <div class="recap-stat"><div class="recap-stat-label">${t('total_hits')}</div><div class="recap-stat-value">${session.hitCount}</div></div>
+      <div class="recap-stat"><div class="recap-stat-label">${t('duration')}</div><div class="recap-stat-value" style="font-size:22px">${dur}</div></div>
+      <div class="recap-stat"><div class="recap-stat-label">${t('avg_force')}</div><div class="recap-stat-value" style="color:var(--red)">${session.avgForce}</div></div>
+      <div class="recap-stat"><div class="recap-stat-label">${t('avg_precision')}</div><div class="recap-stat-value" style="color:var(--gold)">${session.avgPrecision}%</div></div>
+      <div class="recap-stat"><div class="recap-stat-label">${t('peak_force')}</div><div class="recap-stat-value" style="color:var(--red2)">${session.peakForce}</div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+      <div class="chart-card">
+        <div class="card-title">${t('force')} / ${t('precision')} over session</div>
+        <canvas id="recap-chart-fp" style="max-height:180px"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="card-title">${t('zone_breakdown')}</div>
+        <canvas id="recap-chart-zones" style="max-height:180px"></canvas>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-title">${t('recent_hits')}</div>
+      <div class="hit-table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>${t('zone')}</th><th>${t('force')}</th><th>${t('precision')}</th><th>${t('time')}</th></tr></thead>
+          <tbody>${hits.map((h,i) => {
+            const col = dirColors[h.direction] || 'var(--muted)';
+            return `<tr>
+              <td style="color:var(--muted)">${i+1}</td>
+              <td><span class="dir-pill" style="background:${col}22;color:${col}">${h.direction.toUpperCase()}</span></td>
+              <td style="font-weight:700">${h.normForce}</td>
+              <td style="color:var(--gold)">${h.precisionScore}%</td>
+              <td style="color:var(--muted)">${new Date(h.serverTime).toLocaleTimeString()}</td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  // Force & precision chart
+  const fpCtx = document.getElementById('recap-chart-fp').getContext('2d');
+  const labels = hits.map((_, i) => `#${i+1}`);
+  new Chart(fpCtx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: t('force'), data: hits.map(h => h.normForce), borderColor:'#d42b2b', backgroundColor:'rgba(212,43,43,0.1)', tension: 0.4, pointRadius: 2 },
+        { label: t('precision'), data: hits.map(h => h.precisionScore), borderColor:'#c9a227', backgroundColor:'rgba(201,162,39,0.1)', tension: 0.4, pointRadius: 2 },
+      ]
+    },
+    options: { responsive:true, plugins:{ legend:{ labels:{ color:'#888', font:{size:11} } } }, scales:{ x:{ticks:{color:'#555',maxTicksLimit:10}}, y:{ticks:{color:'#555'},min:0,max:100} } }
+  });
+
+  // Zone breakdown doughnut
+  const zdCtx = document.getElementById('recap-chart-zones').getContext('2d');
+  new Chart(zdCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Up','Down','Left','Right','Center'],
+      datasets: [{ data: ['up','down','left','right','center'].map(d => zbd[d]||0), backgroundColor:['#4fa3e8','#e85d3d','#9b6bef','#3dc47e','#f0a040'], borderWidth:0 }]
+    },
+    options: { responsive:true, plugins:{ legend:{ position:'right', labels:{ color:'#888', font:{size:11} } } } }
+  });
+}
+
+// ── Progress render ────────────────────────────────────────────────
+async function renderProgress() {
+  const sessions = await api('/api/progress');
+  if (sessions.length === 0) return;
+
+  const labels = sessions.map((s, i) => `#${i+1}`);
+  const chartDefaults = {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { color: '#555' } },
+      y: { ticks: { color: '#555' }, beginAtZero: true }
+    }
+  };
+
+  destroyChart('chart-force');
+  destroyChart('chart-precision');
+  destroyChart('chart-time');
+
+  const fCtx = document.getElementById('chart-force').getContext('2d');
+  progressCharts['chart-force'] = new Chart(fCtx, {
+    type: 'bar',
+    data: { labels, datasets: [{ label: t('avg_force'), data: sessions.map(s => s.avgForce), backgroundColor: 'rgba(212,43,43,0.7)', borderColor: '#d42b2b', borderWidth: 1, borderRadius: 4 }] },
+    options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, max: 100 } } }
+  });
+
+  const pCtx = document.getElementById('chart-precision').getContext('2d');
+  progressCharts['chart-precision'] = new Chart(pCtx, {
+    type: 'line',
+    data: { labels, datasets: [{ label: t('avg_precision'), data: sessions.map(s => s.avgPrecision), borderColor: '#c9a227', backgroundColor: 'rgba(201,162,39,0.15)', tension: 0.4, fill: true }] },
+    options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, max: 100 } } }
+  });
+
+  const tCtx = document.getElementById('chart-time').getContext('2d');
+  progressCharts['chart-time'] = new Chart(tCtx, {
+    type: 'bar',
+    data: { labels, datasets: [{ label: t('training_time'), data: sessions.map(s => Math.round((s.durationSeconds||0)/60)), backgroundColor: 'rgba(79,163,232,0.6)', borderColor: '#4fa3e8', borderWidth: 1, borderRadius: 4 }] },
+    options: chartDefaults
+  });
+}
+
+function destroyChart(id) {
+  if (progressCharts[id]) { progressCharts[id].destroy(); delete progressCharts[id]; }
+}
+
+// ── Settings render ────────────────────────────────────────────────
+function renderSettings() {
+  if (!currentUser) return;
+  document.getElementById('settings-name').textContent  = `${currentUser.firstName} ${currentUser.lastName}`;
+  document.getElementById('settings-email').textContent = currentUser.email;
+
+  const saved = localStorage.getItem('deviceToken');
+  if (saved) document.getElementById('device-token-display').textContent = saved;
+}
+
+async function generateDeviceToken() {
+  const data = await api('/api/device/token', { method:'POST', body:'{}' });
+  if (data.deviceToken) {
+    localStorage.setItem('deviceToken', data.deviceToken);
+    document.getElementById('device-token-display').textContent = data.deviceToken;
+    toast(lang === 'fr' ? 'Jeton généré!' : 'Token generated! Copy it to your ESP32 firmware.');
+  }
+}
+
+// ── Boot ───────────────────────────────────────────────────────────
+applyLang();
+setEncourage();
+
+if (authToken) {
+  enterApp();
+} else {
+  showView('view-login');
+}
+</script>
+</body>
+</html>

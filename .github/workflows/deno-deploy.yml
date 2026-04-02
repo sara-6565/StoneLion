@@ -1,0 +1,34 @@
+name: Deno Deploy
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v2
+
+      - name: Cache Deno dependencies
+        run: deno cache --import-map=import_map.json server.ts
+
+      - name: Lint
+        run: deno lint --import-map=import_map.json
+
+      - name: Deploy to Deno Deploy
+        if: env.DENO_DEPLOY_PROJECT && env.DENO_DEPLOY_TOKEN
+        run: |
+          deno deploy --project ${{ secrets.DENO_DEPLOY_PROJECT }} \
+            --token ${{ secrets.DENO_DEPLOY_TOKEN }} \
+            --import-map=import_map.json .
+        env:
+          DENO_DEPLOY_PROJECT: ${{ secrets.DENO_DEPLOY_PROJECT }}
+          DENO_DEPLOY_TOKEN: ${{ secrets.DENO_DEPLOY_TOKEN }}

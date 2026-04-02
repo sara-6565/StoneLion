@@ -1,0 +1,5 @@
+data/
+.deno/
+.vscode/
+.DS_Store
+Thumbs.db

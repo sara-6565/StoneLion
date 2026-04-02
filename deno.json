@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "types": ["deno.ns"]
+  },
+  "fmt": {
+    "lineWidth": 80
+  }
+}
