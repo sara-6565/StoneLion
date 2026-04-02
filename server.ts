@@ -161,14 +161,11 @@ function calcPrecision(sensors: { up: number; down: number; left: number; right:
   if (max === 0) return 0;
 
   if (direction === "center") {
-    // All sensors similar = high precision
     const avg = vals.reduce((a, b) => a + b, 0) / 4;
     const variance = vals.reduce((s, v) => s + Math.abs(v - avg), 0) / 4;
     return Math.max(0, Math.round(100 - (variance / avg) * 100));
   }
 
-  // For directional hits: precision = how dominant the target sensor is
-  // and how centered within its zone (dominant vs others)
   const dominant = sensors[direction as keyof typeof sensors] || 0;
   const others = vals.filter(v => v !== dominant);
   const othersAvg = others.reduce((a, b) => a + b, 0) / others.length;
@@ -180,13 +177,12 @@ function detectDirection(sensors: { up: number; down: number; left: number; righ
   const vals = [sensors.up, sensors.down, sensors.left, sensors.right];
   const max = Math.max(...vals);
 
-  // Center: all sensors within 25% of each other relative to max
   const spread = Math.max(...vals) - Math.min(...vals);
   if (spread < max * 0.3 && max >= threshold) return "center";
 
-  if (max === sensors.up)    return "up";
-  if (max === sensors.down)  return "down";
-  if (max === sensors.left)  return "left";
+  if (max === sensors.up)   return "up";
+  if (max === sensors.down) return "down";
+  if (max === sensors.left) return "left";
   return "right";
 }
 
@@ -207,10 +203,10 @@ async function recomputeSessionStats(sessionId: string) {
   const sessions = await getSessions();
   const idx = sessions.findIndex(s => s.id === sessionId);
   if (idx >= 0) {
-    sessions[idx].hitCount = sessionHits.length;
-    sessions[idx].avgForce = avgForce;
-    sessions[idx].avgPrecision = avgPrecision;
-    sessions[idx].peakForce = peakForce;
+    sessions[idx].hitCount      = sessionHits.length;
+    sessions[idx].avgForce      = avgForce;
+    sessions[idx].avgPrecision  = avgPrecision;
+    sessions[idx].peakForce     = peakForce;
     sessions[idx].zoneBreakdown = zoneBreakdown;
     await saveSessions(sessions);
   }
@@ -312,7 +308,6 @@ async function handler(req: Request): Promise<Response> {
     user.resetToken  = generateToken();
     user.resetExpiry = Date.now() + 3600000; // 1 hour
     await updateUser(user);
-    // In production: send email. For now, return token in response for dev use.
     console.log(`Reset token for ${email}: ${user.resetToken}`);
     return json({ ok: true, devToken: user.resetToken });
   }
@@ -336,7 +331,16 @@ async function handler(req: Request): Promise<Response> {
     if (!userId) return authError();
     const user = await getUserById(userId);
     if (!user) return authError();
-    return json({ id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, activeSessionId: user.activeSessionId });
+    // FIX: include deviceToken so the frontend can restore it on page load
+    // without ever needing to regenerate it.
+    return json({
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      activeSessionId: user.activeSessionId,
+      deviceToken: user.deviceToken,
+    });
   }
 
   // ── POST /api/device/token ───────────────────────────────────────
@@ -345,8 +349,14 @@ async function handler(req: Request): Promise<Response> {
     if (!userId) return authError();
     const user = await getUserById(userId);
     if (!user) return authError();
-    user.deviceToken = generateToken();
-    await updateUser(user);
+    // FIX: only generate a new token if the user has none yet, or if they
+    // explicitly pass { "forceNew": true } to rotate it intentionally.
+    // This stops the token from silently changing every time Settings loads.
+    const body = await req.json().catch(() => ({}));
+    if (!user.deviceToken || body.forceNew) {
+      user.deviceToken = generateToken();
+      await updateUser(user);
+    }
     return json({ deviceToken: user.deviceToken });
   }
 
@@ -428,7 +438,7 @@ async function handler(req: Request): Promise<Response> {
     const sessions = await getSessions();
     const mine = sessions.filter(s => s.userId === userId && s.endTime !== null)
       .sort((a, b) => a.startTime - b.startTime)
-      .slice(-20); // last 20 completed sessions
+      .slice(-20);
     return json(mine);
   }
 
