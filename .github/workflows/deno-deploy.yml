@@ -18,10 +18,10 @@ jobs:
           deno-version: v2
 
       - name: Cache Deno dependencies
-        run: deno cache --import-map=import_map.json server.ts
+        run: deno cache server.ts
 
       - name: Lint
-        run: deno lint --import-map=import_map.json
+        run: deno lint
 
       - name: Deploy to Deno Deploy
         if: env.DENO_DEPLOY_PROJECT && env.DENO_DEPLOY_TOKEN

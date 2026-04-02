@@ -166,7 +166,7 @@ It lints the code and deploys on every push to `main` if the secrets are configu
 deno upgrade
 deno run --allow-net --allow-read --allow-write --unstable-kv --import-map=import_map.json server.ts
 deno cache server.ts
-deno lint --import-map=import_map.json
+deno lint
 deno deploy --app stonelion --token <YOUR_DENO_DEPLOY_TOKEN> .
 ```
 
