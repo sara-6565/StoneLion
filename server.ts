@@ -118,18 +118,22 @@ function generateToken(): string {
   return encodeHex(arr);
 }
 
-// ── Auth token store (in-memory, session tokens) ───────────────────
-const authTokens = new Map<string, string>(); // token → userId
+// ── Auth token store ───────────────────────────────────────────────
+// Auth tokens (web session tokens) are persisted in KV so they survive
+// server restarts and page refreshes.
+// Key: ["authTokens", token] → userId string
 
-function createAuthToken(userId: string): string {
+async function createAuthToken(userId: string): Promise<string> {
   const token = generateToken();
-  authTokens.set(token, userId);
+  // Store with a 7-day TTL (milliseconds)
+  await kv.set(["authTokens", token], userId, { expireIn: 7 * 24 * 60 * 60 * 1000 });
   return token;
 }
 
-function getUserIdFromToken(token: string | null): string | null {
+async function getUserIdFromToken(token: string | null): Promise<string | null> {
   if (!token) return null;
-  return authTokens.get(token) ?? null;
+  const res = await kv.get<string>(["authTokens", token]);
+  return res.value ?? null;
 }
 
 async function getUserById(id: string): Promise<User | null> {
@@ -284,7 +288,7 @@ async function handler(req: Request): Promise<Response> {
     users.push(user);
     await saveUsers(users);
 
-    const token = createAuthToken(user.id);
+    const token = await createAuthToken(user.id);
     return json({ token, user: { id: user.id, email, firstName, lastName } });
   }
 
@@ -296,7 +300,7 @@ async function handler(req: Request): Promise<Response> {
     const hash = await hashPassword(password);
     if (hash !== user.passwordHash) return json({ error: "Invalid email or password" }, 401);
 
-    const token = createAuthToken(user.id);
+    const token = await createAuthToken(user.id);
     return json({ token, user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName } });
   }
 
@@ -327,31 +331,33 @@ async function handler(req: Request): Promise<Response> {
 
   // ── GET /api/me ──────────────────────────────────────────────────
   if (method === "GET" && path === "/api/me") {
-    const userId = getUserIdFromToken(getAuthToken(req));
+    const userId = await getUserIdFromToken(getAuthToken(req));
     if (!userId) return authError();
     const user = await getUserById(userId);
     if (!user) return authError();
-    // FIX: include deviceToken so the frontend can restore it on page load
-    // without ever needing to regenerate it.
+    // Returns deviceToken so the frontend can display it without
+    // calling /api/device/token (which would regenerate it).
     return json({
       id: user.id,
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
       activeSessionId: user.activeSessionId,
-      deviceToken: user.deviceToken,
+      deviceToken: user.deviceToken,   // ← already-saved token, never rotated here
     });
   }
 
   // ── POST /api/device/token ───────────────────────────────────────
+  // Only generates a NEW token when the user has none yet, or when
+  // { "forceNew": true } is sent (e.g. from a "Regenerate" button).
+  // Visiting the Settings page must NOT call this endpoint on load —
+  // read deviceToken from GET /api/me instead.
   if (method === "POST" && path === "/api/device/token") {
-    const userId = getUserIdFromToken(getAuthToken(req));
+    const userId = await getUserIdFromToken(getAuthToken(req));
     if (!userId) return authError();
     const user = await getUserById(userId);
     if (!user) return authError();
-    // FIX: only generate a new token if the user has none yet, or if they
-    // explicitly pass { "forceNew": true } to rotate it intentionally.
-    // This stops the token from silently changing every time Settings loads.
+
     const body = await req.json().catch(() => ({}));
     if (!user.deviceToken || body.forceNew) {
       user.deviceToken = generateToken();
@@ -362,7 +368,7 @@ async function handler(req: Request): Promise<Response> {
 
   // ── POST /api/sessions/start ─────────────────────────────────────
   if (method === "POST" && path === "/api/sessions/start") {
-    const userId = getUserIdFromToken(getAuthToken(req));
+    const userId = await getUserIdFromToken(getAuthToken(req));
     if (!userId) return authError();
     const user = await getUserById(userId);
     if (!user) return authError();
@@ -385,7 +391,7 @@ async function handler(req: Request): Promise<Response> {
 
   // ── POST /api/sessions/end ───────────────────────────────────────
   if (method === "POST" && path === "/api/sessions/end") {
-    const userId = getUserIdFromToken(getAuthToken(req));
+    const userId = await getUserIdFromToken(getAuthToken(req));
     if (!userId) return authError();
     const user = await getUserById(userId);
     if (!user || !user.activeSessionId) return json({ error: "No active session" }, 400);
@@ -406,7 +412,7 @@ async function handler(req: Request): Promise<Response> {
 
   // ── GET /api/sessions ────────────────────────────────────────────
   if (method === "GET" && path === "/api/sessions") {
-    const userId = getUserIdFromToken(getAuthToken(req));
+    const userId = await getUserIdFromToken(getAuthToken(req));
     if (!userId) return authError();
     const sessions = await getSessions();
     const mine = sessions.filter(s => s.userId === userId)
@@ -417,7 +423,7 @@ async function handler(req: Request): Promise<Response> {
   // ── GET /api/sessions/:id ────────────────────────────────────────
   const sessionMatch = path.match(/^\/api\/sessions\/([^/]+)$/);
   if (method === "GET" && sessionMatch) {
-    const userId = getUserIdFromToken(getAuthToken(req));
+    const userId = await getUserIdFromToken(getAuthToken(req));
     if (!userId) return authError();
     const sessionId = sessionMatch[1];
     const sessions = await getSessions();
@@ -433,7 +439,7 @@ async function handler(req: Request): Promise<Response> {
 
   // ── GET /api/progress ────────────────────────────────────────────
   if (method === "GET" && path === "/api/progress") {
-    const userId = getUserIdFromToken(getAuthToken(req));
+    const userId = await getUserIdFromToken(getAuthToken(req));
     if (!userId) return authError();
     const sessions = await getSessions();
     const mine = sessions.filter(s => s.userId === userId && s.endTime !== null)
@@ -543,5 +549,5 @@ async function handler(req: Request): Promise<Response> {
 
 // ── Boot ───────────────────────────────────────────────────────────
 const PORT = 8080;
-console.log(`\n🥊 Stonelion Kung Fu server → http://localhost:${PORT}\n`);
-Deno.serve({ port: 8080, hostname: "0.0.0.0" }, handler);
+console.log(`\n🥊 Iron Fist server → http://localhost:${PORT}\n`);
+Deno.serve({ port: PORT, hostname: "0.0.0.0" }, handler);

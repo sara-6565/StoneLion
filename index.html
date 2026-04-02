@@ -1828,12 +1828,16 @@ function renderSettings() {
   document.getElementById('settings-name').textContent  = `${currentUser.firstName} ${currentUser.lastName}`;
   document.getElementById('settings-email').textContent = currentUser.email;
 
-  const saved = localStorage.getItem('deviceToken');
-  if (saved) document.getElementById('device-token-display').textContent = saved;
+  // Prefer the token from the server (returned by /api/me), fall back to localStorage
+  const token = currentUser.deviceToken || localStorage.getItem('deviceToken');
+  if (token) {
+    localStorage.setItem('deviceToken', token);
+    document.getElementById('device-token-display').textContent = token;
+  }
 }
 
 async function generateDeviceToken() {
-  const data = await api('/api/device/token', { method:'POST', body:'{}' });
+  const data = await api('/api/device/token', { method:'POST', body: JSON.stringify({ forceNew: true }) });
   if (data.deviceToken) {
     localStorage.setItem('deviceToken', data.deviceToken);
     document.getElementById('device-token-display').textContent = data.deviceToken;
