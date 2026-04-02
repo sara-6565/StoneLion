@@ -18,7 +18,7 @@ A small Deno backend plus single-page web UI for training tracking and ESP32 sen
 
 - `server.ts` — Deno backend and API router
 - `index.html` — frontend UI
-- `logo.svg` — relative logo asset used by the page
+- `logo.png` — relative logo asset used by the page (copy your PNG from `C:\Users\sarag\OneDrive\StrikesensLogo.png` into the repo root as `logo.png`)
 - `.vscode/settings.json` — Deno editor support
 - `deno.json` — Deno config with import map
 - `import_map.json` — remote std imports mapped to bare specifiers
