@@ -300,13 +300,17 @@ async function handler(req: Request): Promise<Response> {
   const path   = url.pathname;
   const method = req.method;
 
-  console.log(`[${method}] ${path}`);
+  console.log(`\n📨 [${method}] ${path}`);
+  console.log(`   Headers: ${JSON.stringify(Object.fromEntries(req.headers.entries()))}`);
 
-  if (method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
+  if (method === "OPTIONS") {
+    console.log("   → CORS preflight");
+    return new Response(null, { status: 204, headers: cors });
+  }
 
   // ── POST /api/auth/signup ────────────────────────────────────────
   if (method === "POST" && path === "/api/auth/signup") {
-    console.log("📝 Processing signup request");
+    console.log("   → Matched: POST /api/auth/signup");
     try {
       const { email, password, firstName, lastName } = await req.json();
       if (!email || !password || !firstName || !lastName)
@@ -594,6 +598,8 @@ async function handler(req: Request): Promise<Response> {
     return await serveFile(filePath);
   }
 
+  // Catch-all logging
+  console.log(`   ⚠️ No routes matched for [${method}] ${path}`);
   return new Response("Not Found", { status: 404 });
 }
 
