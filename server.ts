@@ -32,10 +32,19 @@ const kv = await Deno.openKv();
 
 // Cache index.html at startup for Deno Deploy compatibility
 let indexHtml: string | null = null;
+
+// Try to load index.html from filesystem
 try {
-  indexHtml = await Deno.readTextFile("./index.html");
-} catch {
-  console.warn("Could not load index.html, will serve inline SPA shell");
+  if (typeof Deno !== "undefined" && Deno.readTextFile) {
+    indexHtml = await Deno.readTextFile("./index.html").catch(() => null);
+    if (indexHtml) {
+      console.log("✓ Loaded index.html from filesystem");
+    } else {
+      console.warn("⚠ index.html not found, will use stub");
+    }
+  }
+} catch (e) {
+  console.error("Error loading index.html:", e);
 }
 
 // ── Types ──────────────────────────────────────────────────────────
@@ -291,43 +300,58 @@ async function handler(req: Request): Promise<Response> {
   const path   = url.pathname;
   const method = req.method;
 
+  console.log(`[${method}] ${path}`);
+
   if (method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
 
   // ── POST /api/auth/signup ────────────────────────────────────────
   if (method === "POST" && path === "/api/auth/signup") {
-    const { email, password, firstName, lastName } = await req.json();
-    if (!email || !password || !firstName || !lastName)
-      return json({ error: "All fields required" }, 400);
-    if (password.length < 6)
-      return json({ error: "Password must be at least 6 characters" }, 400);
-    const existing = await getUserByEmail(email);
-    if (existing) return json({ error: "Email already registered" }, 400);
+    console.log("📝 Processing signup request");
+    try {
+      const { email, password, firstName, lastName } = await req.json();
+      if (!email || !password || !firstName || !lastName)
+        return json({ error: "All fields required" }, 400);
+      if (password.length < 6)
+        return json({ error: "Password must be at least 6 characters" }, 400);
+      const existing = await getUserByEmail(email);
+      if (existing) return json({ error: "Email already registered" }, 400);
 
-    const user: User = {
-      id: generateId(), email, firstName, lastName,
-      passwordHash: await hashPassword(password),
-      createdAt: Date.now(),
-      deviceToken: null, resetToken: null, resetExpiry: null,
-      activeSessionId: null,
-    };
-    const users = await getUsers();
-    users.push(user);
-    await saveUsers(users);
+      const user: User = {
+        id: generateId(), email, firstName, lastName,
+        passwordHash: await hashPassword(password),
+        createdAt: Date.now(),
+        deviceToken: null, resetToken: null, resetExpiry: null,
+        activeSessionId: null,
+      };
+      const users = await getUsers();
+      users.push(user);
+      await saveUsers(users);
 
-    const token = await createAuthToken(user.id);
-    return json({ token, user: { id: user.id, email, firstName, lastName } });
+      const token = await createAuthToken(user.id);
+      console.log("✓ User registered:", email);
+      return json({ token, user: { id: user.id, email, firstName, lastName } });
+    } catch (e) {
+      console.error("Error in signup:", e);
+      return json({ error: "Signup failed: " + String(e) }, 500);
+    }
   }
 
   // ── POST /api/auth/login ─────────────────────────────────────────
   if (method === "POST" && path === "/api/auth/login") {
-    const { email, password } = await req.json();
-    const user = await getUserByEmail(email);
-    if (!user) return json({ error: "Invalid email or password" }, 401);
-    const hash = await hashPassword(password);
-    if (hash !== user.passwordHash) return json({ error: "Invalid email or password" }, 401);
+    try {
+      const { email, password } = await req.json();
+      const user = await getUserByEmail(email);
+      if (!user) return json({ error: "Invalid email or password" }, 401);
+      const hash = await hashPassword(password);
+      if (hash !== user.passwordHash) return json({ error: "Invalid email or password" }, 401);
 
-    const token = await createAuthToken(user.id);
-    return json({ token, user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName } });
+      const token = await createAuthToken(user.id);
+      console.log("✓ User logged in:", email);
+      return json({ token, user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName } });
+    } catch (e) {
+      console.error("Error in login:", e);
+      return json({ error: "Login failed" }, 500);
+    }
   }
 
   // ── POST /api/auth/reset-request ────────────────────────────────
@@ -576,4 +600,13 @@ async function handler(req: Request): Promise<Response> {
 // ── Boot ───────────────────────────────────────────────────────────
 const PORT = parseInt(Deno.env.get("PORT") || "8080", 10);
 console.log(`\n🥊 Stonelion Kung Fu server → http://localhost:${PORT}\n`);
-Deno.serve({ port: PORT, hostname: "0.0.0.0" }, handler);
+
+// For Deno Deploy, avoid explicitly setting hostname
+if (typeof Deno.env.get("DENO_REGION") !== "undefined") {
+  // Running on Deno Deploy
+  console.log("📍 Running on Deno Deploy");
+  Deno.serve({ port: PORT }, handler);
+} else {
+  // Running locally
+  Deno.serve({ port: PORT, hostname: "0.0.0.0" }, handler);
+}
