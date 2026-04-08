@@ -20,8 +20,10 @@ jobs:
         with:
           deno-version: 2.1.4
 
+      - name: Remove lockfile
+        run: rm -f deno.lock
+
       - name: Deploy to Deno Deploy
-        if: ${{ secrets.DENO_DEPLOY_PROJECT && secrets.DENO_DEPLOY_TOKEN }}
         run: |
           deno deploy --app ${{ secrets.DENO_DEPLOY_PROJECT }} \
             --token ${{ secrets.DENO_DEPLOY_TOKEN }} .
