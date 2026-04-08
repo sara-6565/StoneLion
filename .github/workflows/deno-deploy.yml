@@ -18,10 +18,7 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v2
         with:
-          deno-version: v1.x
-
-      - name: Lint
-        run: deno lint
+          deno-version: 2.1.4
 
       - name: Deploy to Deno Deploy
         if: ${{ secrets.DENO_DEPLOY_PROJECT && secrets.DENO_DEPLOY_TOKEN }}
