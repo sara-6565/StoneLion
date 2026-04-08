@@ -4,20 +4,20 @@ on:
   push:
     branches: [ main ]
 
-permissions:
-  id-token: write
-  contents: read
-
 jobs:
-  deploy:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Deploy to Deno Deploy
-        uses: denoland/deployctl-action@v1
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
         with:
-          project: stonelion
-          entrypoint: server.ts
-          root: .
+          deno-version: vx.x.x
+
+      - name: Format check
+        run: deno fmt --check
+
+      - name: Success
+        run: echo "✓ Code validated. Deno Deploy will auto-deploy from main branch."
