@@ -314,6 +314,17 @@ async function handler(req: Request): Promise<Response> {
     return json({ status: "ok", timestamp: new Date().toISOString() });
   }
 
+  // ── POST /test (test endpoint) ────────────────────────────────────
+  if (method === "POST" && path === "/test") {
+    console.log("   → Test POST received");
+    try {
+      const body = await req.json().catch(() => ({}));
+      return json({ ok: true, received: body });
+    } catch (e) {
+      return json({ error: String(e) });
+    }
+  }
+
   // ── POST /api/auth/signup ────────────────────────────────────────
   if (method === "POST" && path === "/api/auth/signup") {
     console.log("   → Matched: POST /api/auth/signup");
