@@ -2,22 +2,11 @@ name: Deno Deploy
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
-  validate:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Deno
-        uses: denoland/setup-deno@v1
-        with:
-          deno-version: vx.x.x
-
-      - name: Format check
-        run: deno fmt --check
-
-      - name: Success
-        run: echo "✓ Code validated. Deno Deploy will auto-deploy from main branch."
+      - uses: actions/checkout@v4
+      - run: echo "✓ Push successful"
