@@ -623,6 +623,7 @@ async function handler(req: Request): Promise<Response> {
 // ── Boot ───────────────────────────────────────────────────────────
 const PORT = parseInt(Deno.env.get("PORT") || "8080", 10);
 console.log(`\n🥊 Stonelion Kung Fu server → http://localhost:${PORT}\n`);
+console.log("✓ Server started at", new Date().toISOString());
 
 // For Deno Deploy, avoid explicitly setting hostname
 if (typeof Deno.env.get("DENO_REGION") !== "undefined") {
