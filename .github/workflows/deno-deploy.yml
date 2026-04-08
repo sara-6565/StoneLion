@@ -20,10 +20,8 @@ jobs:
         with:
           deno-version: 2.1.4
 
-      - name: Remove lockfile
-        run: rm -f deno.lock
-
       - name: Deploy to Deno Deploy
         run: |
-          deno deploy --app ${{ secrets.DENO_DEPLOY_PROJECT }} \
-            --token ${{ secrets.DENO_DEPLOY_TOKEN }} .
+          deno run --allow-all https://deno.land/x/deployctl/deployctl.ts deploy --project=${{ secrets.DENO_DEPLOY_PROJECT }} --prod server.ts
+        env:
+          DENO_AUTH_TOKENS: ${{ secrets.DENO_DEPLOY_TOKEN }}
