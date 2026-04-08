@@ -308,6 +308,12 @@ async function handler(req: Request): Promise<Response> {
     return new Response(null, { status: 204, headers: cors });
   }
 
+  // ── GET /health (health check) ────────────────────────────────────
+  if (method === "GET" && path === "/health") {
+    console.log("   → Health check");
+    return json({ status: "ok", timestamp: new Date().toISOString() });
+  }
+
   // ── POST /api/auth/signup ────────────────────────────────────────
   if (method === "POST" && path === "/api/auth/signup") {
     console.log("   → Matched: POST /api/auth/signup");
