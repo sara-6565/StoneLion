@@ -548,6 +548,6 @@ async function handler(req: Request): Promise<Response> {
 }
 
 // ── Boot ───────────────────────────────────────────────────────────
-const PORT = 8080;
-console.log(`\n🥊 Iron Fist server → http://localhost:${PORT}\n`);
+const PORT = parseInt(Deno.env.get("PORT") || "8080", 10);
+console.log(`\n🥊 Stonelion Kung Fu server → http://localhost:${PORT}\n`);
 Deno.serve({ port: PORT, hostname: "0.0.0.0" }, handler);
