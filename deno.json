@@ -13,7 +13,8 @@
   "deploy": {
     "org": "sara-6565",
     "app": "stonelion",
-    "exclude": [".git", ".gitignore", "README.md"]
+    "entrypoint": "./server.ts",
+    "exclude": [".git", ".gitignore", "README.md", ".github"]
   }
 }
 
