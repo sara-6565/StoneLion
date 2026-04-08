@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.1.7
 
       - name: Setup Deno
         uses: denoland/setup-deno@v2
@@ -27,10 +27,7 @@ jobs:
         run: deno lint
 
       - name: Deploy to Deno Deploy
-        if: env.DENO_DEPLOY_PROJECT && env.DENO_DEPLOY_TOKEN
+        if: secrets.DENO_DEPLOY_PROJECT && secrets.DENO_DEPLOY_TOKEN
         run: |
           deno deploy --app ${{ secrets.DENO_DEPLOY_PROJECT }} \
             --token ${{ secrets.DENO_DEPLOY_TOKEN }} .
-        env:
-          DENO_DEPLOY_PROJECT: ${{ secrets.DENO_DEPLOY_PROJECT }}
-          DENO_DEPLOY_TOKEN: ${{ secrets.DENO_DEPLOY_TOKEN }}
