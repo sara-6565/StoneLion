@@ -30,6 +30,14 @@ import { encodeHex } from "std/encoding/hex.ts";
 
 const kv = await Deno.openKv();
 
+// Cache index.html at startup for Deno Deploy compatibility
+let indexHtml: string | null = null;
+try {
+  indexHtml = await Deno.readTextFile("./index.html");
+} catch {
+  console.warn("Could not load index.html, will serve inline SPA shell");
+}
+
 // ── Types ──────────────────────────────────────────────────────────
 interface User {
   id: string;
@@ -242,6 +250,19 @@ function getAuthToken(req: Request): string | null {
 
 // ── Static file serving ────────────────────────────────────────────
 async function serveFile(path: string): Promise<Response> {
+  // Handle index.html with cached content
+  if (path === "./index.html" || path === "/" || !path.includes(".")) {
+    if (indexHtml) {
+      return new Response(indexHtml, { 
+        headers: { "Content-Type": "text/html", "Cache-Control": "public, max-age=3600" } 
+      });
+    }
+    // Fallback SPA shell if index.html couldn't be loaded
+    const shell = `<!DOCTYPE html><html><head><title>Stonelion Kung Fu</title></head><body><div id="app">Loading...</div><script>alert('Server error: Could not load app');</script></body></html>`;
+    return new Response(shell, { headers: { "Content-Type": "text/html" } });
+  }
+
+  // Try to read file locally (for local development)
   try {
     const content = await Deno.readFile(path);
     const ext = path.split(".").pop() ?? "";
@@ -254,8 +275,13 @@ async function serveFile(path: string): Promise<Response> {
       headers: { "Content-Type": mime[ext] ?? "application/octet-stream" },
     });
   } catch {
-    const index = await Deno.readFile("./index.html");
-    return new Response(index, { headers: { "Content-Type": "text/html" } });
+    // Fallback: return index.html for any missing file (for SPA routing)
+    if (indexHtml) {
+      return new Response(indexHtml, { 
+        headers: { "Content-Type": "text/html" } 
+      });
+    }
+    return new Response("Not found", { status: 404 });
   }
 }
 
